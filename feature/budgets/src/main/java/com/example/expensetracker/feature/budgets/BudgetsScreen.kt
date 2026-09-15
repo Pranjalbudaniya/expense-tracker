@@ -149,6 +149,7 @@ fun BudgetsListContent(
             if (!uiState.isLoading && uiState.budgets.isNotEmpty()) {
                 FloatingActionButton(
                     onClick = onAddBudgetClick,
+                    modifier = Modifier.padding(bottom = 76.dp),
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 ) {
@@ -181,7 +182,7 @@ fun BudgetsListContent(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(innerPadding),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 100.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     items(uiState.budgets, key = { it.budget.id.value }) { item ->
