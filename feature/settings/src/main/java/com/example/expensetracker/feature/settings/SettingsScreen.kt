@@ -301,7 +301,7 @@ private fun AppearanceCard(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
         )
     ) {
         Column(
@@ -348,7 +348,7 @@ private fun AppearanceCard(
                 }
             }
 
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
             // Text Size Selector
             Text(
@@ -389,7 +389,7 @@ private fun AppearanceCard(
                 }
             }
 
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
             // Dynamic Color Toggle
             Row(
@@ -426,9 +426,10 @@ private fun AppearanceCard(
                 )
             }
 
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
-            // Custom Accent Color
+            // Custom Accent Color (Disabled when Dynamic Color is active)
+            val isDynamicActive = isDynamicColorEnabled && isDynamicColorSupported
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -440,23 +441,27 @@ private fun AppearanceCard(
                             text = "Custom Accent Color",
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = if (isDynamicActive) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
+                            else MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = if (customAccentColor != null) {
+                            text = if (isDynamicActive) {
+                                "Turn off Dynamic Color to choose a custom accent color"
+                            } else if (customAccentColor != null) {
                                 val selectedName = availableAccentColors.find { it.argb == customAccentColor }?.name ?: "Custom"
-                                "Selected: $selectedName (applies when Dynamic Color is off)"
+                                "Selected: $selectedName (applies across the whole app)"
                             } else {
-                                "Select a seed color (applies when Dynamic Color is off)"
+                                "Choose a custom color to theme the entire app"
                             },
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = if (isDynamicActive) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                            else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
 
-                    if (customAccentColor != null) {
+                    if (!isDynamicActive && customAccentColor != null) {
                         TextButton(onClick = onClearCustomAccent) {
-                            Text("Clear")
+                            Text("Reset")
                         }
                     }
                 }
@@ -467,14 +472,16 @@ private fun AppearanceCard(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     availableAccentColors.forEach { option ->
-                        val isSelected = customAccentColor == option.argb
+                        val isSelected = !isDynamicActive && customAccentColor == option.argb
                         val optionColor = Color(option.argb)
 
                         Box(
                             modifier = Modifier
                                 .size(48.dp)
                                 .clip(CircleShape)
-                                .background(optionColor)
+                                .background(
+                                    if (isDynamicActive) optionColor.copy(alpha = 0.35f) else optionColor
+                                )
                                 .then(
                                     if (isSelected) {
                                         Modifier.border(
@@ -486,12 +493,18 @@ private fun AppearanceCard(
                                         Modifier
                                     }
                                 )
-                                .clickable(
-                                    role = Role.RadioButton,
-                                    onClickLabel = "Select ${option.name} accent"
-                                ) {
-                                    onCustomAccentSelect(option.argb)
-                                },
+                                .then(
+                                    if (!isDynamicActive) {
+                                        Modifier.clickable(
+                                            role = Role.RadioButton,
+                                            onClickLabel = "Select ${option.name} accent"
+                                        ) {
+                                            onCustomAccentSelect(option.argb)
+                                        }
+                                    } else {
+                                        Modifier
+                                    }
+                                ),
                             contentAlignment = Alignment.Center
                         ) {
                             if (isSelected) {

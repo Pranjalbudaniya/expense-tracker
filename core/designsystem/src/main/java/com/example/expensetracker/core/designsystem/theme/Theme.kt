@@ -26,14 +26,14 @@ fun ExpenseTrackerTheme(
     content: @Composable () -> Unit
 ) {
     val colorScheme: ColorScheme = when {
-        // Explicit custom accent color set by user has top priority
-        customAccentColor != null -> {
-            buildAccentColorScheme(accentArgb = customAccentColor, darkTheme = darkTheme)
-        }
-        // Material You dynamic system colors on Android 12+
+        // Material You dynamic system colors on Android 12+ (when enabled)
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+        }
+        // Custom accent color selected by user
+        customAccentColor != null -> {
+            buildAccentColorScheme(accentArgb = customAccentColor, darkTheme = darkTheme)
         }
         // Curated emerald/forest theme
         else -> expenseTrackerColorScheme(darkTheme = darkTheme)

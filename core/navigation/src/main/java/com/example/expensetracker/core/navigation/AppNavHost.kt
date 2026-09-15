@@ -64,13 +64,31 @@ fun AppNavHost(
                     navController.navigate(AppDestination.AddTransaction)
                 },
                 onNavigateToTransactions = {
-                    navController.navigate(AppDestination.Transactions)
+                    navController.navigate(AppDestination.Transactions) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
                 },
                 onNavigateToBudgets = {
-                    navController.navigate(BudgetsDestination)
+                    navController.navigate(BudgetsDestination) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
                 },
                 onNavigateToStatistics = {
-                    navController.navigate(AppDestination.Statistics)
+                    navController.navigate(AppDestination.Statistics) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
                 },
                 onTransactionClick = { txId ->
                     navController.navigate(AppDestination.TransactionDetails(txId))

@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.Locale
@@ -38,19 +39,21 @@ class AddTransactionViewModel @Inject constructor(
 
     private fun loadInitialData() {
         viewModelScope.launch {
-            val preferredCurrency = try {
-                preferencesRepository?.userPreferences?.first()?.currencyCode?.let { Currency.fromCode(it) } ?: Currency.USD
-            } catch (e: Exception) {
-                Currency.USD
-            }
+            val userPrefsFlow = preferencesRepository?.userPreferences ?: flowOf(com.example.expensetracker.core.preferences.UserPreferences.DEFAULT)
 
             combine(
                 useCases.loadAccounts(),
-                useCases.loadCategories()
-            ) { accounts, categories ->
+                useCases.loadCategories(),
+                userPrefsFlow
+            ) { accounts, categories, prefs ->
                 // Remove bank accounts from payment options per user requirement
                 val paymentOptions = accounts.filter { it.type != AccountType.BANK }
-                Pair(paymentOptions, categories)
+                val prefCurrency = try {
+                    Currency.fromCode(prefs.currencyCode)
+                } catch (_: Exception) {
+                    Currency.INR
+                }
+                Triple(paymentOptions, categories, prefCurrency)
             }.catch { throwable ->
                 _uiState.update {
                     it.copy(
@@ -58,21 +61,17 @@ class AddTransactionViewModel @Inject constructor(
                         generalError = throwable.localizedMessage ?: "Failed to load accounts and categories"
                     )
                 }
-            }.collect { (accounts, categories) ->
+            }.collect { (accounts, categories, prefCurrency) ->
                 _uiState.update { current ->
                     val defaultSource = current.selectedSourceAccountId ?: accounts.firstOrNull()?.id
                     val defaultDest = current.selectedDestinationAccountId ?: accounts.firstOrNull()?.id
-                    val currency = accounts.firstOrNull()?.currency ?: preferredCurrency
-
-                    // Find dining/food category as default if available to match Stitch design
                     val defaultCategory = current.selectedCategoryId
-                        ?: categories.firstOrNull { it.name.contains("Dining", ignoreCase = true) || it.name.contains("Food", ignoreCase = true) }?.id
                         ?: categories.firstOrNull()?.id
 
                     current.copy(
                         availableAccounts = accounts,
                         availableCategories = categories,
-                        selectedCurrency = currency,
+                        selectedCurrency = prefCurrency,
                         selectedSourceAccountId = defaultSource,
                         selectedDestinationAccountId = defaultDest,
                         selectedCategoryId = defaultCategory,

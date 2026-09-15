@@ -397,7 +397,7 @@ fun QuickAddSection(
         modifier = modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
         )
     ) {
         Row(
@@ -432,20 +432,6 @@ fun QuickAddSection(
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Text("Income", style = MaterialTheme.typography.labelLarge)
-            }
-
-            FilledTonalButton(
-                onClick = onAddTransactionClick,
-                modifier = Modifier.weight(1f),
-                shape = MaterialTheme.shapes.medium
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.Send,
-                    contentDescription = null,
-                    modifier = Modifier.size(16.dp)
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-                Text("Transfer", style = MaterialTheme.typography.labelLarge)
             }
         }
     }
@@ -778,7 +764,7 @@ fun RecentTransactionsSection(
         modifier = modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
         )
     ) {
         Column(
@@ -797,7 +783,7 @@ fun RecentTransactionsSection(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 TextButton(onClick = onViewAll) {
-                    Text("See All")
+                    Text("View All")
                     Spacer(modifier = Modifier.width(4.dp))
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowForward,
