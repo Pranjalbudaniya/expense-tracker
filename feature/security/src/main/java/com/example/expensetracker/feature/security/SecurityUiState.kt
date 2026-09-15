@@ -6,8 +6,12 @@ package com.example.expensetracker.feature.security
 data class SecurityUiState(
     val isAppLockEnabled: Boolean = false,
     val lockTimeoutSeconds: Long = 0L,
+    val lockMode: AppLockMode = AppLockMode.PIN,
+    val hasPin: Boolean = false,
+    val hasPassword: Boolean = false,
     val biometricAuthStatus: BiometricAuthStatus = BiometricAuthStatus.AVAILABLE,
     val isLoading: Boolean = true,
     val userMessage: String? = null,
     val errorMessage: String? = null
 )
+

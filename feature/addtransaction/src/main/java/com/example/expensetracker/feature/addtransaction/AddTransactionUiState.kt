@@ -43,4 +43,15 @@ data class AddTransactionUiState(
 
     val hasAccounts: Boolean
         get() = availableAccounts.isNotEmpty()
+
+    val filteredCategories: List<Category>
+        get() = availableCategories.filter {
+            if (isIncome) {
+                it.type == com.example.expensetracker.core.model.category.CategoryType.INCOME ||
+                    it.type == com.example.expensetracker.core.model.category.CategoryType.BOTH
+            } else {
+                it.type == com.example.expensetracker.core.model.category.CategoryType.EXPENSE ||
+                    it.type == com.example.expensetracker.core.model.category.CategoryType.BOTH
+            }
+        }
 }

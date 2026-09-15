@@ -54,6 +54,20 @@ import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
 
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.TextButton
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SecurityScreen(
@@ -65,6 +79,9 @@ fun SecurityScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
     val activity = context as? FragmentActivity
+
+    var showPinDialog by remember { mutableStateOf(false) }
+    var showPasswordDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(uiState.userMessage) {
         uiState.userMessage?.let { msg ->
@@ -146,7 +163,7 @@ fun SecurityScreen(
                         Switch(
                             checked = uiState.isAppLockEnabled,
                             onCheckedChange = { targetEnabled ->
-                                if (activity != null && securityManager != null) {
+                                if (activity != null && securityManager != null && uiState.lockMode == AppLockMode.BIOMETRIC) {
                                     val title = if (targetEnabled) "Confirm Lock Setup" else "Confirm Unlock"
                                     val subtitle = if (targetEnabled) "Authenticate to enable App Lock" else "Authenticate to disable App Lock"
                                     securityManager.authenticate(
@@ -165,6 +182,125 @@ fun SecurityScreen(
                                 }
                             }
                         )
+                    }
+                }
+            }
+
+            // Lock Method Selection Card
+            AnimatedVisibility(visible = uiState.isAppLockEnabled) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
+                    ),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Text(
+                            text = "Lock Method",
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = "Choose how you want to unlock the application.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+
+                        val lockModes = listOf(
+                            Triple(
+                                AppLockMode.PIN,
+                                "PIN Code (4-6 digits)",
+                                if (uiState.hasPin) "PIN is active" else "No PIN set"
+                            ),
+                            Triple(
+                                AppLockMode.PASSWORD,
+                                "Alphanumeric Password",
+                                if (uiState.hasPassword) "Password is active" else "No password set"
+                            ),
+                            Triple(
+                                AppLockMode.BIOMETRIC,
+                                "Biometrics / Device Lock",
+                                "Uses Android system authentication"
+                            )
+                        )
+
+                        Column(modifier = Modifier.selectableGroup()) {
+                            lockModes.forEach { (mode, label, statusText) ->
+                                val isSelected = uiState.lockMode == mode
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .selectable(
+                                            selected = isSelected,
+                                            onClick = { viewModel.setLockMode(mode) },
+                                            role = Role.RadioButton
+                                        )
+                                        .padding(vertical = 6.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    RadioButton(selected = isSelected, onClick = null)
+                                    Spacer(modifier = Modifier.width(10.dp))
+                                    Column {
+                                        Text(
+                                            text = label,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
+                                        )
+                                        Text(
+                                            text = statusText,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        when (uiState.lockMode) {
+                            AppLockMode.PIN -> {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Button(
+                                        onClick = { showPinDialog = true },
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Text(if (uiState.hasPin) "Change PIN" else "Set PIN")
+                                    }
+                                    if (uiState.hasPin) {
+                                        OutlinedButton(onClick = { viewModel.removePin() }) {
+                                            Text("Remove")
+                                        }
+                                    }
+                                }
+                            }
+                            AppLockMode.PASSWORD -> {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Button(
+                                        onClick = { showPasswordDialog = true },
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Text(if (uiState.hasPassword) "Change Password" else "Set Password")
+                                    }
+                                    if (uiState.hasPassword) {
+                                        OutlinedButton(onClick = { viewModel.removePassword() }) {
+                                            Text("Remove")
+                                        }
+                                    }
+                                }
+                            }
+                            AppLockMode.BIOMETRIC -> Unit
+                        }
                     }
                 }
             }
@@ -272,6 +408,208 @@ fun SecurityScreen(
             }
         }
     }
+
+    if (showPinDialog) {
+        PinSetupDialog(
+            onDismiss = { showPinDialog = false },
+            onConfirm = { pin ->
+                viewModel.setPin(pin)
+                showPinDialog = false
+            }
+        )
+    }
+
+    if (showPasswordDialog) {
+        PasswordSetupDialog(
+            onDismiss = { showPasswordDialog = false },
+            onConfirm = { password ->
+                viewModel.setPassword(password)
+                showPasswordDialog = false
+            }
+        )
+    }
+}
+
+@Composable
+private fun PinSetupDialog(
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit
+) {
+    var pin by remember { mutableStateOf("") }
+    var confirmPin by remember { mutableStateOf("") }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+    var isPinVisible by remember { mutableStateOf(false) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = "Set In-App PIN",
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+            )
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(
+                    text = "Enter a 4 to 6 digit numeric PIN to lock and unlock the application.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                OutlinedTextField(
+                    value = pin,
+                    onValueChange = { input ->
+                        if (input.all { it.isDigit() } && input.length <= 6) {
+                            pin = input
+                            errorMessage = null
+                        }
+                    },
+                    label = { Text("New PIN (4-6 digits)") },
+                    singleLine = true,
+                    visualTransformation = if (isPinVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+                    trailingIcon = {
+                        IconButton(onClick = { isPinVisible = !isPinVisible }) {
+                            Icon(
+                                imageVector = if (isPinVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                                contentDescription = if (isPinVisible) "Hide PIN" else "Show PIN"
+                            )
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = confirmPin,
+                    onValueChange = { input ->
+                        if (input.all { it.isDigit() } && input.length <= 6) {
+                            confirmPin = input
+                            errorMessage = null
+                        }
+                    },
+                    label = { Text("Confirm PIN") },
+                    singleLine = true,
+                    visualTransformation = if (isPinVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                if (errorMessage != null) {
+                    Text(
+                        text = errorMessage!!,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    if (pin.length < 4 || pin.length > 6) {
+                        errorMessage = "PIN must be between 4 and 6 digits"
+                    } else if (pin != confirmPin) {
+                        errorMessage = "PINs do not match"
+                    } else {
+                        onConfirm(pin)
+                    }
+                }
+            ) {
+                Text("Save PIN")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+
+@Composable
+private fun PasswordSetupDialog(
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit
+) {
+    var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+    var isPasswordVisible by remember { mutableStateOf(false) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = "Set In-App Password",
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+            )
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(
+                    text = "Enter an alphanumeric password (at least 4 characters) to secure the application.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                OutlinedTextField(
+                    value = password,
+                    onValueChange = {
+                        password = it
+                        errorMessage = null
+                    },
+                    label = { Text("New Password") },
+                    singleLine = true,
+                    visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    trailingIcon = {
+                        IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
+                            Icon(
+                                imageVector = if (isPasswordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                                contentDescription = if (isPasswordVisible) "Hide password" else "Show password"
+                            )
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = confirmPassword,
+                    onValueChange = {
+                        confirmPassword = it
+                        errorMessage = null
+                    },
+                    label = { Text("Confirm Password") },
+                    singleLine = true,
+                    visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                if (errorMessage != null) {
+                    Text(
+                        text = errorMessage!!,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    if (password.length < 4) {
+                        errorMessage = "Password must be at least 4 characters long"
+                    } else if (password != confirmPassword) {
+                        errorMessage = "Passwords do not match"
+                    } else {
+                        onConfirm(password)
+                    }
+                }
+            ) {
+                Text("Save Password")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 }
 
 @Composable

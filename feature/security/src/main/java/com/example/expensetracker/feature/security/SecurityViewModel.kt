@@ -22,15 +22,29 @@ class SecurityViewModel @Inject constructor(
     private val _errorMessage = MutableStateFlow<String?>(null)
 
     val uiState: StateFlow<SecurityUiState> = combine(
-        securityPreferencesRepository.isAppLockEnabled,
-        securityPreferencesRepository.lockTimeoutSeconds,
-        _biometricStatus,
-        _userMessage,
-        _errorMessage
-    ) { isEnabled, timeout, status, userMsg, errorMsg ->
+        combine(
+            securityPreferencesRepository.isAppLockEnabled,
+            securityPreferencesRepository.lockTimeoutSeconds,
+            securityPreferencesRepository.lockMode,
+            securityManager.hasPin,
+            securityManager.hasPassword
+        ) { isEnabled, timeout, mode, hasPin, hasPass ->
+            Quint(isEnabled, timeout, mode, hasPin, hasPass)
+        },
+        combine(
+            _biometricStatus,
+            _userMessage,
+            _errorMessage
+        ) { status, userMsg, errorMsg ->
+            Triple(status, userMsg, errorMsg)
+        }
+    ) { (isEnabled, timeout, mode, hasPin, hasPass), (status, userMsg, errorMsg) ->
         SecurityUiState(
             isAppLockEnabled = isEnabled,
             lockTimeoutSeconds = timeout,
+            lockMode = mode,
+            hasPin = hasPin,
+            hasPassword = hasPass,
             biometricAuthStatus = status,
             isLoading = false,
             userMessage = userMsg,
@@ -47,10 +61,10 @@ class SecurityViewModel @Inject constructor(
     }
 
     fun setAppLockEnabled(enabled: Boolean) {
-        if (enabled) {
+        if (enabled && uiState.value.lockMode == AppLockMode.BIOMETRIC) {
             val status = securityManager.checkBiometricStatus()
             if (status == BiometricAuthStatus.NOT_ENROLLED) {
-                _errorMessage.value = "Device has no screen lock or biometrics configured. Please set up a screen lock in your device settings."
+                _errorMessage.value = "Device has no screen lock or biometrics configured. Please set up PIN or Password lock, or configure Android device lock."
                 return
             }
             if (status == BiometricAuthStatus.NO_HARDWARE) {
@@ -65,6 +79,61 @@ class SecurityViewModel @Inject constructor(
                 _userMessage.value = if (enabled) "App lock enabled" else "App lock disabled"
             } catch (e: Exception) {
                 _errorMessage.value = e.message ?: "Failed to update app lock setting"
+            }
+        }
+    }
+
+    fun setLockMode(mode: AppLockMode) {
+        viewModelScope.launch {
+            try {
+                securityPreferencesRepository.setLockMode(mode)
+                _userMessage.value = "Lock method set to ${mode.name}"
+            } catch (e: Exception) {
+                _errorMessage.value = e.message ?: "Failed to update lock mode"
+            }
+        }
+    }
+
+    fun setPin(pin: String) {
+        viewModelScope.launch {
+            try {
+                securityPreferencesRepository.setPin(pin)
+                _userMessage.value = "PIN set successfully"
+            } catch (e: Exception) {
+                _errorMessage.value = e.message ?: "Failed to set PIN"
+            }
+        }
+    }
+
+    fun removePin() {
+        viewModelScope.launch {
+            try {
+                securityPreferencesRepository.setPin(null)
+                _userMessage.value = "PIN removed"
+            } catch (e: Exception) {
+                _errorMessage.value = e.message ?: "Failed to remove PIN"
+            }
+        }
+    }
+
+    fun setPassword(password: String) {
+        viewModelScope.launch {
+            try {
+                securityPreferencesRepository.setPassword(password)
+                _userMessage.value = "Password set successfully"
+            } catch (e: Exception) {
+                _errorMessage.value = e.message ?: "Failed to set password"
+            }
+        }
+    }
+
+    fun removePassword() {
+        viewModelScope.launch {
+            try {
+                securityPreferencesRepository.setPassword(null)
+                _userMessage.value = "Password removed"
+            } catch (e: Exception) {
+                _errorMessage.value = e.message ?: "Failed to remove password"
             }
         }
     }
@@ -87,3 +156,6 @@ class SecurityViewModel @Inject constructor(
         _errorMessage.value = null
     }
 }
+
+private data class Quint<A, B, C, D, E>(val first: A, val second: B, val third: C, val fourth: D, val fifth: E)
+

@@ -1,22 +1,27 @@
 package com.example.expensetracker.feature.categories
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.filled.AccountBox
+import androidx.compose.material.icons.filled.AccountBalanceWallet
+import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.Build
-import androidx.compose.material.icons.filled.Call
+import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.DirectionsBus
 import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.material.icons.filled.Flight
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.MoreHoriz
+import androidx.compose.material.icons.filled.Movie
+import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Place
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.automirrored.filled.ReceiptLong
+import androidx.compose.material.icons.filled.Restaurant
+import androidx.compose.material.icons.filled.School
+import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.ThumbUp
+import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.example.expensetracker.core.model.category.Category
@@ -47,25 +52,26 @@ data class CategoryColorOption(
 object CategoryVisualCatalog {
 
     val ICONS: List<CategoryIconOption> = listOf(
-        CategoryIconOption("restaurant", "Dining", Icons.Default.Favorite),
-        CategoryIconOption("shopping_bag", "Shopping", Icons.Default.ShoppingCart),
-        CategoryIconOption("directions_bus", "Transport", Icons.Default.Place),
-        CategoryIconOption("receipt_long", "Bills", Icons.Default.Notifications),
-        CategoryIconOption("school", "Education", Icons.Default.Star),
-        CategoryIconOption("movie", "Entertainment", Icons.Default.PlayArrow),
-        CategoryIconOption("fitness_center", "Health", Icons.Default.Favorite),
-        CategoryIconOption("flight", "Travel", Icons.AutoMirrored.Filled.Send),
+        CategoryIconOption("restaurant", "Dining", Icons.Default.Restaurant),
+        CategoryIconOption("shopping_bag", "Shopping", Icons.Default.ShoppingBag),
+        CategoryIconOption("directions_bus", "Transport", Icons.Default.DirectionsBus),
+        CategoryIconOption("receipt_long", "Bills", Icons.AutoMirrored.Filled.ReceiptLong),
+        CategoryIconOption("school", "Education", Icons.Default.School),
+        CategoryIconOption("movie", "Entertainment", Icons.Default.Movie),
+        CategoryIconOption("fitness_center", "Health", Icons.Default.FitnessCenter),
+        CategoryIconOption("flight", "Travel", Icons.Default.Flight),
         CategoryIconOption("person", "Personal", Icons.Default.Person),
-        CategoryIconOption("payments", "Salary", Icons.Default.AccountBox),
-        CategoryIconOption("account_balance_wallet", "Wallet", Icons.Default.AccountBox),
-        CategoryIconOption("workspace_premium", "Awards", Icons.Default.Star),
-        CategoryIconOption("redeem", "Gift", Icons.Default.ThumbUp),
+        CategoryIconOption("payments", "Salary", Icons.Default.Payments),
+        CategoryIconOption("account_balance_wallet", "Wallet", Icons.Default.AccountBalanceWallet),
+        CategoryIconOption("workspace_premium", "Awards", Icons.Default.WorkspacePremium),
+        CategoryIconOption("redeem", "Gift", Icons.Default.CardGiftcard),
+        CategoryIconOption("attach_money", "Other Income", Icons.Default.AttachMoney),
         CategoryIconOption("home", "Housing", Icons.Default.Home),
         CategoryIconOption("build", "Services", Icons.Default.Build),
-        CategoryIconOption("phone", "Phone", Icons.Default.Call),
+        CategoryIconOption("phone", "Phone", Icons.Default.Phone),
         CategoryIconOption("email", "Mail", Icons.Default.Email),
         CategoryIconOption("date_range", "Events", Icons.Default.DateRange),
-        CategoryIconOption("more_horiz", "Other", Icons.Default.MoreVert)
+        CategoryIconOption("more_horiz", "Other", Icons.Default.MoreHoriz)
     )
 
     val COLORS: List<CategoryColorOption> = listOf(

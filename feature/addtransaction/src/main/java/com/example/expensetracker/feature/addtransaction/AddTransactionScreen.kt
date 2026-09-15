@@ -30,21 +30,35 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.AccountBox
+import androidx.compose.material.icons.filled.AttachMoney
+import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.DirectionsBus
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.material.icons.filled.Flight
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Movie
+import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.ReceiptLong
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Restaurant
+import androidx.compose.material.icons.filled.School
+import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -562,7 +576,7 @@ fun AddTransactionContent(
                             contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp)
                         ) {
                             Text(
-                                text = "View All (${uiState.availableCategories.size})",
+                                text = "View All (${uiState.filteredCategories.size})",
                                 style = MaterialTheme.typography.labelMedium,
                                 fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.primary
@@ -576,7 +590,7 @@ fun AddTransactionContent(
                             .horizontalScroll(rememberScrollState()),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        uiState.availableCategories.forEach { category ->
+                        uiState.filteredCategories.forEach { category ->
                             val isSelected = category.id == uiState.selectedCategoryId
                             Surface(
                                 shape = RoundedCornerShape(16.dp),
@@ -1095,7 +1109,7 @@ fun AddTransactionContent(
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    items(uiState.availableCategories) { category ->
+                    items(uiState.filteredCategories) { category ->
                         val isSelected = category.id == uiState.selectedCategoryId
                         Surface(
                             shape = RoundedCornerShape(16.dp),
@@ -1170,14 +1184,22 @@ fun AddTransactionContent(
 private fun resolveCategoryIcon(name: String): ImageVector {
     val lower = name.lowercase()
     return when {
-        lower.contains("dining") || lower.contains("food") || lower.contains("restaurant") -> Icons.Default.Star
+        lower.contains("dining") || lower.contains("food") || lower.contains("restaurant") -> Icons.Default.Restaurant
         lower.contains("groceries") || lower.contains("market") -> Icons.Default.ShoppingCart
-        lower.contains("transit") || lower.contains("transport") || lower.contains("commute") -> Icons.Default.Place
-        lower.contains("shopping") -> Icons.Default.ShoppingCart
-        lower.contains("bill") || lower.contains("utilit") -> Icons.Default.Info
-        lower.contains("fun") || lower.contains("entertain") -> Icons.Default.Star
-        lower.contains("health") || lower.contains("medic") -> Icons.Default.Person
-        else -> Icons.Default.AccountBox
+        lower.contains("transit") || lower.contains("transport") || lower.contains("commute") || lower.contains("bus") -> Icons.Default.DirectionsBus
+        lower.contains("shopping") -> Icons.Default.ShoppingBag
+        lower.contains("bill") || lower.contains("utilit") || lower.contains("receipt") -> Icons.Default.ReceiptLong
+        lower.contains("education") || lower.contains("school") || lower.contains("study") -> Icons.Default.School
+        lower.contains("fun") || lower.contains("entertain") || lower.contains("movie") -> Icons.Default.Movie
+        lower.contains("health") || lower.contains("medic") || lower.contains("fitness") || lower.contains("gym") -> Icons.Default.FitnessCenter
+        lower.contains("travel") || lower.contains("flight") || lower.contains("trip") -> Icons.Default.Flight
+        lower.contains("salary") || lower.contains("payroll") || lower.contains("wage") -> Icons.Default.Payments
+        lower.contains("pocket") || lower.contains("wallet") -> Icons.Default.AccountBalanceWallet
+        lower.contains("scholarship") || lower.contains("award") -> Icons.Default.WorkspacePremium
+        lower.contains("gift") -> Icons.Default.CardGiftcard
+        lower.contains("personal") -> Icons.Default.Person
+        lower.contains("housing") || lower.contains("home") || lower.contains("rent") -> Icons.Default.Home
+        else -> Icons.Default.AttachMoney
     }
 }
 

@@ -3,6 +3,7 @@ package com.example.expensetracker.feature.addtransaction
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.expensetracker.core.model.account.AccountType
+import com.example.expensetracker.core.model.category.CategoryType
 import com.example.expensetracker.core.model.money.Currency
 import com.example.expensetracker.core.model.money.Money
 import com.example.expensetracker.core.model.transaction.TransactionType
@@ -65,8 +66,10 @@ class AddTransactionViewModel @Inject constructor(
                 _uiState.update { current ->
                     val defaultSource = current.selectedSourceAccountId ?: accounts.firstOrNull()?.id
                     val defaultDest = current.selectedDestinationAccountId ?: accounts.firstOrNull()?.id
-                    val defaultCategory = current.selectedCategoryId
-                        ?: categories.firstOrNull()?.id
+                    val defaultCategory = current.selectedCategoryId ?: categories.firstOrNull {
+                        if (current.isIncome) it.type == CategoryType.INCOME || it.type == CategoryType.BOTH
+                        else it.type == CategoryType.EXPENSE || it.type == CategoryType.BOTH
+                    }?.id ?: categories.firstOrNull()?.id
 
                     current.copy(
                         availableAccounts = accounts,
@@ -94,9 +97,28 @@ class AddTransactionViewModel @Inject constructor(
                         current.selectedDestinationAccountId
                     }
 
+                    val currentCat = current.availableCategories.find { it.id == current.selectedCategoryId }
+                    val currentMatches = currentCat != null && when (newType) {
+                        TransactionType.INCOME -> currentCat.type == CategoryType.INCOME || currentCat.type == CategoryType.BOTH
+                        else -> currentCat.type == CategoryType.EXPENSE || currentCat.type == CategoryType.BOTH
+                    }
+
+                    val updatedCategory = if (currentMatches) {
+                        current.selectedCategoryId
+                    } else {
+                        current.availableCategories.firstOrNull {
+                            if (newType == TransactionType.INCOME) {
+                                it.type == CategoryType.INCOME || it.type == CategoryType.BOTH
+                            } else {
+                                it.type == CategoryType.EXPENSE || it.type == CategoryType.BOTH
+                            }
+                        }?.id ?: current.selectedCategoryId
+                    }
+
                     current.copy(
                         transactionType = newType,
                         selectedDestinationAccountId = updatedDest,
+                        selectedCategoryId = updatedCategory,
                         amountError = null,
                         sourceAccountError = null,
                         destinationAccountError = null,

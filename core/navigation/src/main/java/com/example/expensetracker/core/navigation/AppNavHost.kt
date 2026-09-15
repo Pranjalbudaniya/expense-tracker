@@ -90,6 +90,9 @@ fun AppNavHost(
                         restoreState = true
                     }
                 },
+                onNavigateToRecurring = {
+                    navController.navigate(AppDestination.Recurring)
+                },
                 onTransactionClick = { txId ->
                     navController.navigate(AppDestination.TransactionDetails(txId))
                 }

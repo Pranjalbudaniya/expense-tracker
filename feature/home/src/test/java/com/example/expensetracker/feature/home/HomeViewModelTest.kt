@@ -263,6 +263,7 @@ class HomeViewModelTest {
         )
         val fakeBudgetRepo = FakeBudgetRepository(emptyList())
         val fakeCategoryRepo = FakeCategoryRepository(listOf(catFood))
+        val fakeRecurringRepo = FakeRecurringTransactionRepository(emptyList())
         val fakePreferencesRepo = FakePreferencesRepository(UserPreferences(currencyCode = "INR"))
 
         val viewModel = HomeViewModel(
@@ -270,6 +271,7 @@ class HomeViewModelTest {
             accountRepository = fakeAccountRepo,
             budgetRepository = fakeBudgetRepo,
             categoryRepository = fakeCategoryRepo,
+            recurringTransactionRepository = fakeRecurringRepo,
             preferencesRepository = fakePreferencesRepo,
             homeUseCases = useCases
         )
@@ -320,6 +322,7 @@ class HomeViewModelTest {
             )
         )
         val fakeCategoryRepo = FakeCategoryRepository(listOf(catFood))
+        val fakeRecurringRepo = FakeRecurringTransactionRepository(emptyList())
         val fakePreferencesRepo = FakePreferencesRepository(UserPreferences(currencyCode = "INR"))
 
         val viewModel = HomeViewModel(
@@ -327,6 +330,7 @@ class HomeViewModelTest {
             accountRepository = fakeAccountRepo,
             budgetRepository = fakeBudgetRepo,
             categoryRepository = fakeCategoryRepo,
+            recurringTransactionRepository = fakeRecurringRepo,
             preferencesRepository = fakePreferencesRepo,
             homeUseCases = useCases
         )
@@ -360,6 +364,7 @@ class HomeViewModelTest {
         val fakeAccountRepo = FakeAccountRepository(emptyList())
         val fakeBudgetRepo = FakeBudgetRepository(emptyList())
         val fakeCategoryRepo = FakeCategoryRepository(emptyList())
+        val fakeRecurringRepo = FakeRecurringTransactionRepository(emptyList())
         val fakePreferencesRepo = FakePreferencesRepository()
 
         val viewModel = HomeViewModel(
@@ -367,6 +372,7 @@ class HomeViewModelTest {
             accountRepository = fakeAccountRepo,
             budgetRepository = fakeBudgetRepo,
             categoryRepository = fakeCategoryRepo,
+            recurringTransactionRepository = fakeRecurringRepo,
             preferencesRepository = fakePreferencesRepo,
             homeUseCases = useCases
         )
@@ -497,3 +503,18 @@ private class FakePreferencesRepository(
     override suspend fun clearCustomAccentColor() {}
     override suspend fun setCurrencyCode(currencyCode: String) {}
 }
+
+private class FakeRecurringTransactionRepository(
+    recurring: List<com.example.expensetracker.core.model.recurring.RecurringTransaction> = emptyList()
+) : com.example.expensetracker.core.data.repository.RecurringTransactionRepository {
+    private val flow = MutableStateFlow(recurring)
+
+    override fun getAllRecurringTransactions(): Flow<List<com.example.expensetracker.core.model.recurring.RecurringTransaction>> = flow
+    override fun getActiveRecurringTransactions(): Flow<List<com.example.expensetracker.core.model.recurring.RecurringTransaction>> = flow
+    override suspend fun getRecurringTransactionById(id: EntityId): com.example.expensetracker.core.model.recurring.RecurringTransaction? = null
+    override suspend fun insertRecurringTransaction(recurringTransaction: com.example.expensetracker.core.model.recurring.RecurringTransaction) {}
+    override suspend fun updateRecurringTransaction(recurringTransaction: com.example.expensetracker.core.model.recurring.RecurringTransaction) {}
+    override suspend fun setEnabled(id: EntityId, isEnabled: Boolean) {}
+    override suspend fun deleteRecurringTransaction(recurringTransaction: com.example.expensetracker.core.model.recurring.RecurringTransaction) {}
+}
+

@@ -3,7 +3,9 @@ package com.example.expensetracker.feature.home
 import com.example.expensetracker.core.model.common.EntityId
 import com.example.expensetracker.core.model.money.Currency
 import com.example.expensetracker.core.model.money.Money
+import com.example.expensetracker.core.model.recurring.RecurrenceFrequency
 import com.example.expensetracker.core.model.transaction.TransactionType
+import java.time.LocalDate
 
 /**
  * Balance, income, and expense summary for a specific currency.
@@ -65,6 +67,25 @@ data class HomeSpendingSnapshot(
 )
 
 /**
+ * Snapshot of an active recurring transaction for the Home dashboard.
+ */
+data class HomeRecurringItem(
+    val id: EntityId,
+    val amount: Money,
+    val type: TransactionType,
+    val frequency: RecurrenceFrequency,
+    val frequencyLabel: String,
+    val nextOccurrence: LocalDate,
+    val nextOccurrenceFormatted: String,
+    val dueStatusText: String,
+    val isDue: Boolean,
+    val categoryName: String,
+    val categoryColorKey: String,
+    val categoryIconKey: String,
+    val note: String
+)
+
+/**
  * Immutable UI state for the Home screen dashboard.
  */
 data class HomeUiState(
@@ -80,6 +101,7 @@ data class HomeUiState(
     val budgetSnapshots: List<HomeBudgetSnapshotItem> = emptyList(),
     val hasBudgets: Boolean = false,
     val recentTransactions: List<HomeRecentTransactionItem> = emptyList(),
+    val recurringTransactions: List<HomeRecurringItem> = emptyList(),
     val spendingSnapshot: HomeSpendingSnapshot = HomeSpendingSnapshot(
         monthLabel = "",
         totalExpense = Money.zero(Currency.INR),

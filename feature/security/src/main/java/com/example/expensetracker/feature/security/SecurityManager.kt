@@ -11,10 +11,12 @@ import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -27,11 +29,16 @@ enum class BiometricAuthStatus {
 
 interface SecurityManager {
     val isLocked: StateFlow<Boolean>
+    val lockMode: Flow<AppLockMode>
+    val hasPin: Flow<Boolean>
+    val hasPassword: Flow<Boolean>
     fun checkBiometricStatus(): BiometricAuthStatus
     fun onAppBackgrounded()
     suspend fun onAppForegrounded()
     fun unlock()
     fun lock()
+    suspend fun verifyAndUnlockWithPin(pin: String): Boolean
+    suspend fun verifyAndUnlockWithPassword(password: String): Boolean
     fun authenticate(
         activity: FragmentActivity,
         title: String = "Unlock Expense Tracker",
@@ -50,6 +57,26 @@ class SecurityManagerImpl @Inject constructor(
 
     private val _isLocked = MutableStateFlow(false)
     override val isLocked: StateFlow<Boolean> = _isLocked.asStateFlow()
+
+    override val lockMode: Flow<AppLockMode> = securityPreferencesRepository.lockMode
+    override val hasPin: Flow<Boolean> = securityPreferencesRepository.pinHash.map { !it.isNullOrBlank() }
+    override val hasPassword: Flow<Boolean> = securityPreferencesRepository.passwordHash.map { !it.isNullOrBlank() }
+
+    override suspend fun verifyAndUnlockWithPin(pin: String): Boolean {
+        val valid = securityPreferencesRepository.verifyPin(pin)
+        if (valid) {
+            unlock()
+        }
+        return valid
+    }
+
+    override suspend fun verifyAndUnlockWithPassword(password: String): Boolean {
+        val valid = securityPreferencesRepository.verifyPassword(password)
+        if (valid) {
+            unlock()
+        }
+        return valid
+    }
 
     private var lastBackgroundTimestamp: Long = 0L
 
