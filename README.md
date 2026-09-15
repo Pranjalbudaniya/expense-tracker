@@ -1,4 +1,4 @@
-# 💸 Expense Tracker
+# 💸 NexusSave
 
 A modern, offline-first personal finance and expense tracking Android application built with **Jetpack Compose**, **Kotlin Coroutines**, **Room Database**, and **Material 3**.
 
