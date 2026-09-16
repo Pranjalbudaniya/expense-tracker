@@ -56,6 +56,8 @@ class BudgetsViewModel @Inject constructor(
 
     private val formStateFlow = MutableStateFlow<BudgetFormState?>(null)
     private val deleteConfirmationFlow = MutableStateFlow<Budget?>(null)
+    private val _undoDeleteBudgetEvent = MutableStateFlow<Budget?>(null)
+    val undoDeleteBudgetEvent: StateFlow<Budget?> = _undoDeleteBudgetEvent
 
     // Currencies supported in the application
     private val supportedCurrencies = listOf(
@@ -252,8 +254,20 @@ class BudgetsViewModel @Inject constructor(
         val budget = deleteConfirmationFlow.value ?: return
         viewModelScope.launch {
             budgetRepository.deleteBudget(budget)
+            _undoDeleteBudgetEvent.value = budget
             dismissDeleteConfirmation()
         }
+    }
+
+    fun undoDeleteBudget(budget: Budget) {
+        viewModelScope.launch {
+            budgetRepository.insertBudget(budget)
+            _undoDeleteBudgetEvent.value = null
+        }
+    }
+
+    fun clearUndoDeleteBudgetEvent() {
+        _undoDeleteBudgetEvent.value = null
     }
 
     fun toggleBudgetEnabled(budget: Budget) {

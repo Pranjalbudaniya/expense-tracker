@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -34,6 +35,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -41,6 +46,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -63,6 +69,23 @@ fun BudgetsScreen(
     viewModel: BudgetsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val undoBudget by viewModel.undoDeleteBudgetEvent.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(undoBudget) {
+        undoBudget?.let { budget ->
+            val result = snackbarHostState.showSnackbar(
+                message = "Budget '${budget.name}' deleted",
+                actionLabel = "Undo",
+                duration = SnackbarDuration.Short
+            )
+            if (result == SnackbarResult.ActionPerformed) {
+                viewModel.undoDeleteBudget(budget)
+            } else {
+                viewModel.clearUndoDeleteBudgetEvent()
+            }
+        }
+    }
 
     BackHandler(enabled = uiState.isFormOpen) {
         viewModel.closeForm()
@@ -88,6 +111,7 @@ fun BudgetsScreen(
     } else {
         BudgetsListContent(
             uiState = uiState,
+            snackbarHostState = snackbarHostState,
             onAddBudgetClick = { viewModel.openCreateForm() },
             onEditBudgetClick = viewModel::openEditForm,
             onDeleteBudgetClick = viewModel::showDeleteConfirmation,
@@ -101,7 +125,7 @@ fun BudgetsScreen(
         AlertDialog(
             onDismissRequest = viewModel::dismissDeleteConfirmation,
             title = { Text("Delete Budget?") },
-            text = { Text("Are you sure you want to delete '${budget.name}'? This action cannot be undone.") },
+            text = { Text("Are you sure you want to delete '${budget.name}'?") },
             confirmButton = {
                 TextButton(onClick = viewModel::confirmDeleteBudget) {
                     Text("Delete", color = MaterialTheme.colorScheme.error)
@@ -123,6 +147,7 @@ fun BudgetsScreen(
 @Composable
 fun BudgetsListContent(
     uiState: BudgetsUiState,
+    snackbarHostState: SnackbarHostState,
     onAddBudgetClick: () -> Unit,
     onEditBudgetClick: (Budget) -> Unit,
     onDeleteBudgetClick: (Budget) -> Unit,
@@ -131,6 +156,14 @@ fun BudgetsListContent(
 ) {
     Scaffold(
         modifier = modifier.fillMaxSize(),
+        snackbarHost = {
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier
+                    .navigationBarsPadding()
+                    .padding(bottom = 86.dp)
+            )
+        },
         topBar = {
             TopAppBar(
                 title = {
